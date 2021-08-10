@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+
+  PizzaHatFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: handler.pizzaHat
+      Runtime: nodejs14.x
+      CodeUri: .   
+  
+  PizzaHatInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref PizzaHatFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt MyEventsRule.Arn
+
+  MyEventsRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Description: "Order to PizzaHat"
+      EventPattern: 
+        source:
+          - custom.orderManager
+        detail-type:
+          - order                
+        detail:
+          restaurantName:
+            - "pizzaHat"
+      Targets:
+        - Arn: !GetAtt PizzaHatFunction.Arn
+          Id: "RuleId"
