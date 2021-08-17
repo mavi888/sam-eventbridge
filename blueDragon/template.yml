@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  BlueDragonURL:
+    Type: String
+
+Resources:
+
+  BlueDragonConnection:
+    Type: AWS::Events::Connection
+    Properties:
+      AuthorizationType: API_KEY
+      Description: 'Connection with an API key'
+      AuthParameters:
+        ApiKeyAuthParameters:
+          ApiKeyName: ApiKeyName
+          ApiKeyValue: BlueDragonApiKeyValue
+
+  BlueDragonApiDestination:
+    Type: AWS::Events::ApiDestination
+    Properties:
+      Name: 'BlueDragonApiDestination'
+      ConnectionArn: !GetAtt BlueDragonConnection.Arn
+      InvocationEndpoint: !Ref BlueDragonURL
+      HttpMethod: POST
+      InvocationRateLimitPerSecond: 10
+
+  BlueDragonEventRule: 
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: "BlueDragon EventRule"
+      EventPattern: 
+        source:
+          - custom.orderManager
+        detail-type:
+          - order                
+        detail:
+          restaurantName:
+            - "blueDragon"
+      Targets: 
+        - Arn: !GetAtt BlueDragonApiDestination.Arn
+          RoleArn: !GetAtt EventBridgeTargetRole.Arn
+          Id: "BlueDragonApiDestination"
+
+  EventBridgeTargetRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - sts:AssumeRole      
+      Policies:
+        - PolicyName: AllowAPIdestinationAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 'events:InvokeApiDestination'
+                Resource: !GetAtt BlueDragonApiDestination.Arn
