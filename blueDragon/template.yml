@@ -42,6 +42,11 @@ Resources:
         - Arn: !GetAtt BlueDragonApiDestination.Arn
           RoleArn: !GetAtt EventBridgeTargetRole.Arn
           Id: "BlueDragonApiDestination"
+          DeadLetterConfig:
+            Arn: !GetAtt BlueDragonDLQueue.Arn
+          RetryPolicy:
+            MaximumEventAgeInSeconds: 60
+            MaximumRetryAttempts: 4
 
   EventBridgeTargetRole:
     Type: AWS::IAM::Role
@@ -63,3 +68,44 @@ Resources:
               - Effect: Allow
                 Action: 'events:InvokeApiDestination'
                 Resource: !GetAtt BlueDragonApiDestination.Arn
+
+  BlueDragonDLQueue:
+    Type: AWS::SQS::Queue
+  
+  BlueDragonDLQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues: 
+        - !Ref BlueDragonDLQueue
+      PolicyDocument:
+        Statement: 
+          - Effect: Allow
+            Action: 'sqs:SendMessage'
+            Resource: !GetAtt BlueDragonDLQueue.Arn
+            Principal:
+              Service: events.amazonaws.com
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt BlueDragonEventRule.Arn
+
+  BlueDragonDLQFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: handler.blueDragonDLQ
+      Runtime: nodejs14.x
+      CodeUri: .
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventsNotProcessedTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventsNotProcessedTable
+      Events:
+        DQLSQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt BlueDragonDLQueue.Arn
+            BatchSize: 1
+  
+  EventsNotProcessedTable:
+    Type: AWS::Serverless::SimpleTable
