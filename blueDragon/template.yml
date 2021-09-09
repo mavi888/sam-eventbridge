@@ -4,6 +4,9 @@ Transform: AWS::Serverless-2016-10-31
 Parameters:
   BlueDragonURL:
     Type: String
+  NotificationEmail:
+    Type: String
+  
 
 Resources:
 
@@ -109,3 +112,26 @@ Resources:
   
   EventsNotProcessedTable:
     Type: AWS::Serverless::SimpleTable
+
+  AlarmTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+      - Protocol: email
+        Endpoint: !Ref NotificationEmail
+
+  Alarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: "Alarm dlq messages when we have 1 or more failed messages in 1 minutes"
+      Namespace: "AWS/Events"
+      MetricName: "InvocationsSentToDlq"
+      Period: 60
+      Statistic: Sum
+      DatapointsToAlarm: 1
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref AlarmTopic
+      
