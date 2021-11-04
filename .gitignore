@@ -4,3 +4,7 @@ pizzaHat/samconfig.toml
 ThaiLand/handler.js
 blueDragon/samconfig.toml
 ThaiLand/samconfig.toml
+.vscode/launch.json
+file:/Users/lmv/Library/Application Support/Code/User/globalStorage/amazonwebservices.aws-toolkit-vscode/cloudformation.schema.json
+file:/Users/lmv/Library/Application Support/Code/User/globalStorage/amazonwebservices.aws-toolkit-vscode/sam.schema.json
+orderManager/node_modules/

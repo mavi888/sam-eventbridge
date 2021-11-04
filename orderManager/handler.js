@@ -1,5 +1,7 @@
-const AWS = require('aws-sdk');
+const AWSXRay = require('aws-xray-sdk-core');
+const AWS = AWSXRay.captureAWS(require('aws-sdk'))
 const eventbridge = new AWS.EventBridge();
+
 
 function putEventInEventBridge(orderDetails) {
 
@@ -19,7 +21,8 @@ function putEventInEventBridge(orderDetails) {
         },
       ]
     };
-  
+
+
     console.log(params);
     return eventbridge.putEvents(params).promise();
   }
@@ -28,13 +31,19 @@ exports.putOrder = async (event) => {
     console.log('putOrder');
 
     const orderDetails = JSON.parse(event.body);
-    const data = await putEventInEventBridge(orderDetails);
 
+    const segment = AWSXRay.getSegment();
+    const subsegment = segment.addNewSubsegment('putEventInEventBridge');
+    subsegment.addAnnotation("customerName", orderDetails.customerName);
+    subsegment.addMetadata("orderDetails", orderDetails)
+    
+    const data = await putEventInEventBridge(orderDetails);
     console.log(data);
     
+    subsegment.close();
     return {
-        statusCode: 200,
-        body: JSON.stringify(orderDetails),
-        headers: {}
-      }
+      statusCode: 200,
+      body: JSON.stringify(orderDetails),
+      headers: {}
+    }    
 }
