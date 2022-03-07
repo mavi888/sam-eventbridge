@@ -1,4 +1,4 @@
-# NAME
+# AWS SAM - AWS EventBridge Demo
 
 _Infrastructure as code framework used_: AWS SAM
 
