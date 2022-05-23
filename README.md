@@ -34,7 +34,7 @@ The [main branch](https://github.com/mavi888/sam-eventbridge) of this project ha
 
 ### Api-Destinations branch
 
-The [api-destinations branch](https://github.com/mavi888/sam-eventbridge/tree/api-destinations) adds a new microservice called BlueDragon in which we use [EventBrigde API Destinations feature](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-api-destinations.html). In which you can just call a 3rd party API directly from an EventBridge rule.
+The [api-destinations branch](https://github.com/mavi888/sam-eventbridge/tree/api-destinations) adds a new microservice called BlueDragon in which we use [EventBridge API Destinations feature](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-api-destinations.html). In which you can just call a 3rd party API directly from an EventBridge rule.
 
 ![Arquitecture](./diagrams/api-destinations-arq.png)
 
